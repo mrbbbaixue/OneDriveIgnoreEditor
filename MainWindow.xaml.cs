@@ -2,10 +2,12 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Security.Principal;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 
 namespace OneDriveIgnoreEditor
@@ -13,6 +15,8 @@ namespace OneDriveIgnoreEditor
     public partial class MainWindow : Window
     {
         private const string RegistryPath = @"SOFTWARE\Policies\Microsoft\OneDrive\EnableODIgnoreListFromGPO";
+        // No changes needed in this file unless there is sorting logic implemented.
+        // If sorting logic exists, it should be reviewed and removed if necessary.
         public ObservableCollection<IgnoreRuleItem> IgnoreRules { get; set; }
         public ICommand DeleteCommand { get; set; }
 
@@ -172,6 +176,20 @@ namespace OneDriveIgnoreEditor
                 isModified = true;
                 StatusTextBlock.Text = "已修改";
             });
+        }
+    }
+
+    public class StringNotEmptyToVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var str = value as string;
+            return !string.IsNullOrWhiteSpace(str) ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -2,9 +2,15 @@
     x:Class="OneDriveIgnoreEditor.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:OneDriveIgnoreEditor"
     Title="OneDriveIgnoreEditor"
-    Width="600"
-    Height="800">
+    Width="500"
+    Height="600"
+    MinWidth="500"
+    MinHeight="600">
+    <Window.Resources>
+        <local:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibilityConverter" />
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
@@ -28,6 +34,7 @@
                 Margin="0,0,0,0"
                 AutoGenerateColumns="False"
                 CanUserAddRows="False"
+                CanUserSortColumns="False"
                 CellEditEnding="IgnoreDataGrid_CellEditEnding"
                 HeadersVisibility="Column"
                 ItemsSource="{Binding IgnoreRules}">
@@ -42,7 +49,8 @@
                                 <Button
                                     Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                     CommandParameter="{Binding}"
-                                    Content="删除" />
+                                    Content="删除"
+                                    Visibility="{Binding Rule, Converter={StaticResource StringNotEmptyToVisibilityConverter}}" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
