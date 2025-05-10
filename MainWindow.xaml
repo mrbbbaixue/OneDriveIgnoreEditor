@@ -77,6 +77,11 @@
                     Margin="5"
                     Click="ImportButton_Click"
                     Content="从文件导入" />
+                <Button
+                    Width="100"
+                    Margin="5"
+                    Click="RestartOneDriveButton_Click"
+                    Content="重启OneDrive" />
             </StackPanel>
         </Grid>
         <StatusBar Grid.Row="1">
