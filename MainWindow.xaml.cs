@@ -15,9 +15,11 @@ namespace OneDriveIgnoreEditor
     public partial class MainWindow : Window
     {
         private const string RegistryPath = @"SOFTWARE\Policies\Microsoft\OneDrive\EnableODIgnoreListFromGPO";
+
         // No changes needed in this file unless there is sorting logic implemented.
         // If sorting logic exists, it should be reviewed and removed if necessary.
         public ObservableCollection<IgnoreRuleItem> IgnoreRules { get; set; }
+
         public ICommand DeleteCommand { get; set; }
 
         private bool isModified = false;
@@ -27,15 +29,8 @@ namespace OneDriveIgnoreEditor
             InitializeComponent();
             DeleteCommand = new RelayCommand(DeleteRule);
 
-            IgnoreRules = new ObservableCollection<IgnoreRuleItem>();
+            IgnoreRules = [];
             DataContext = this;
-
-            if (!IsRunAsAdmin())
-            {
-                RelaunchAsAdmin();
-                Application.Current.Shutdown();
-                return;
-            }
 
             LoadRegistryEntries();
         }
@@ -58,25 +53,6 @@ namespace OneDriveIgnoreEditor
                 newItem.PropertyChanged += (s, e) => AddEmptyIfNeeded();
                 IgnoreRules.Add(newItem);
             }
-        }
-
-        private bool IsRunAsAdmin()
-        {
-            var wi = WindowsIdentity.GetCurrent();
-            var wp = new WindowsPrincipal(wi);
-            return wp.IsInRole(WindowsBuiltInRole.Administrator);
-        }
-
-        private void RelaunchAsAdmin()
-        {
-            var exe = Process.GetCurrentProcess().MainModule.FileName;
-            var startInfo = new ProcessStartInfo(exe)
-            {
-                UseShellExecute = true,
-                Verb = "runas"
-            };
-            try { Process.Start(startInfo); }
-            catch { MessageBox.Show("需要管理员权限来运行此程序。"); }
         }
 
         private void LoadRegistryEntries()
@@ -147,7 +123,7 @@ namespace OneDriveIgnoreEditor
 
         private void ImportButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new Microsoft.Win32.OpenFileDialog
+            var dialog = new OpenFileDialog
             {
                 Title = "选择规则文件",
                 Filter = "文本文件 (*.txt)|*.txt"
@@ -187,91 +163,16 @@ namespace OneDriveIgnoreEditor
 
                 StatusTextBlock.Text = "正在重启OneDrive...";
 
-                // 关闭所有OneDrive进程
-                foreach (var process in Process.GetProcessesByName("OneDrive"))
+                try
                 {
-                    try
-                    {
-                        process.Kill();
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"关闭OneDrive进程时出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                        StatusTextBlock.Text = "重启OneDrive失败";
-                        return;
-                    }
-                }                // 等待进程完全退出
-                System.Threading.Thread.Sleep(1000);
-
-                // 启动一个低权限的进程来启动OneDrive
-                StatusTextBlock.Text = "正在以低权限启动OneDrive...";
-
-                // 查找OneDrive可执行文件路径
-                var oneDrivePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft", "OneDrive", "OneDrive.exe");
-                bool launched = false;
-
-                // 使用辅助方法以低权限启动
-                if (File.Exists(oneDrivePath))
+                    // 使用新的低权限重启方法
+                    App.RestartOneDrive();
+                    StatusTextBlock.Text = "OneDrive已重启";
+                }
+                catch (Exception ex)
                 {
-                    try
-                    {
-                        // 通过启动一个低权限的cmd.exe来启动OneDrive
-                        var startInfo = new ProcessStartInfo
-                        {
-                            FileName = "cmd.exe",
-                            Arguments = $"/c start \"\" \"{oneDrivePath}\"",
-                            UseShellExecute = true,
-                            CreateNoWindow = true,
-                            WindowStyle = ProcessWindowStyle.Hidden
-                        };
-                        Process.Start(startInfo);
-                        launched = true;
-                        StatusTextBlock.Text = "OneDrive已重启";
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"启动OneDrive失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                }                if (!launched)
-                {
-                    // 尝试其他可能的路径
-                    var programFilesPaths = new[]
-                    {
-                        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Microsoft OneDrive", "OneDrive.exe"),
-                        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Microsoft OneDrive", "OneDrive.exe")
-                    };
-
-                    foreach (var path in programFilesPaths)
-                    {
-                        if (File.Exists(path))
-                        {
-                            try
-                            {
-                                var altStartInfo = new ProcessStartInfo
-                                {
-                                    FileName = "cmd.exe",
-                                    Arguments = $"/c start \"\" \"{path}\"",
-                                    UseShellExecute = true,
-                                    CreateNoWindow = true,
-                                    WindowStyle = ProcessWindowStyle.Hidden
-                                };
-                                Process.Start(altStartInfo);
-                                launched = true;
-                                StatusTextBlock.Text = "OneDrive已重启";
-                                break;
-                            }
-                            catch (Exception ex)
-                            {
-                                MessageBox.Show($"启动OneDrive失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                            }
-                        }
-                    }
-
-                    if (!launched)
-                    {
-                        MessageBox.Show("无法找到OneDrive可执行文件或启动失败", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                        StatusTextBlock.Text = "重启OneDrive失败";
-                    }
+                    MessageBox.Show($"重启OneDrive失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    StatusTextBlock.Text = "重启OneDrive失败";
                 }
             }
             catch (Exception ex)
