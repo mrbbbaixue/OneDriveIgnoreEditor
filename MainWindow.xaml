@@ -30,7 +30,7 @@
                 Margin="0,0,0,10"
                 FontSize="20"
                 FontWeight="Bold"
-                Text="OneDriveIgnoreEditor" />
+                Text="OneDrive文件忽略列表" />
             <DataGrid
                 x:Name="IgnoreDataGrid"
                 Grid.Row="1"
@@ -50,6 +50,7 @@
                         Width="*"
                         Binding="{Binding Rule, UpdateSourceTrigger=PropertyChanged}"
                         Header="规则" />
+                    <!--
                     <DataGridTemplateColumn Width="70" Header="操作">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
@@ -61,6 +62,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
+                    -->
                 </DataGrid.Columns>
             </DataGrid>
 
@@ -90,7 +92,7 @@
             </StackPanel>
         </Grid>
         <StatusBar Grid.Row="1">
-            <StatusBarItem>
+            <StatusBarItem Margin="5">
                 <TextBlock x:Name="StatusTextBlock" Text="准备就绪" />
             </StatusBarItem>
         </StatusBar>

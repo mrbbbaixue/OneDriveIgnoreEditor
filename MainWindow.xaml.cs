@@ -45,16 +45,6 @@ namespace OneDriveIgnoreEditor
             }
         }
 
-        private void AddEmptyIfNeeded()
-        {
-            if (IgnoreRules.Count == 0 || !string.IsNullOrWhiteSpace(IgnoreRules[^1].Rule))
-            {
-                var newItem = new IgnoreRuleItem();
-                newItem.PropertyChanged += (s, e) => AddEmptyIfNeeded();
-                IgnoreRules.Add(newItem);
-            }
-        }
-
         private void LoadRegistryEntries()
         {
             IgnoreRules.Clear();
@@ -72,7 +62,6 @@ namespace OneDriveIgnoreEditor
                     }
                 }
 
-                AddEmptyIfNeeded();
                 isModified = false;
                 StatusTextBlock.Text = "已加载注册表项";
             }
@@ -187,7 +176,6 @@ namespace OneDriveIgnoreEditor
             // 延迟执行以确保编辑值被更新
             Dispatcher.InvokeAsync(() =>
             {
-                AddEmptyIfNeeded();
                 isModified = true;
                 StatusTextBlock.Text = "已修改";
             });
