@@ -2,6 +2,8 @@
 
 一个用于管理OneDrive文件同步忽略列表的图形化工具。通过修改Windows注册表，让OneDrive在同步时忽略指定的文件或文件夹。
 
+[English Version](README.en.md)
+
 
 ## 中文版本
 
