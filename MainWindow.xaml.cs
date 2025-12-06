@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace OneDriveIgnoreEditor
 {
@@ -171,8 +172,98 @@ namespace OneDriveIgnoreEditor
             }
         }
 
+        private void AddNewButton_Click(object sender, RoutedEventArgs e)
+        {
+            // 添加新的空规则项
+            var newItem = new IgnoreRuleItem { Rule = string.Empty };
+            IgnoreRules.Add(newItem);
+
+            // 设置修改标志
+            isModified = true;
+            StatusTextBlock.Text = "已添加新规则项";
+
+            // 可选：滚动到新项并开始编辑
+            // 延迟执行以确保UI已更新
+            Dispatcher.InvokeAsync(() =>
+            {
+                // 选择新添加的项
+                IgnoreDataGrid.SelectedItem = newItem;
+                IgnoreDataGrid.ScrollIntoView(newItem);
+
+                // 尝试开始编辑（可能需要用户手动点击单元格）
+                // 或者可以设置焦点到DataGrid
+                IgnoreDataGrid.Focus();
+            }, System.Windows.Threading.DispatcherPriority.Background);
+        }
+
+        private void Window_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            // 获取鼠标点击位置
+            Point mousePosition = e.GetPosition(this);
+
+            // 进行命中测试
+            HitTestResult hitTestResult = VisualTreeHelper.HitTest(this, mousePosition);
+            if (hitTestResult != null)
+            {
+                // 检查命中点是否在DataGrid内
+                DependencyObject hitObject = hitTestResult.VisualHit;
+                bool isClickInsideDataGrid = false;
+
+                // 向上遍历视觉树，检查是否有DataGrid祖先
+                while (hitObject != null)
+                {
+                    if (hitObject is DataGrid)
+                    {
+                        isClickInsideDataGrid = true;
+                        break;
+                    }
+                    hitObject = VisualTreeHelper.GetParent(hitObject);
+                }
+
+                // 如果点击不在DataGrid内，尝试取消DataGrid的编辑
+                if (!isClickInsideDataGrid)
+                {
+                    // 尝试取消编辑
+                    IgnoreDataGrid.CancelEdit();
+                }
+            }
+        }
+
         private void IgnoreDataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
         {
+            // 如果用户取消编辑，不进行处理
+            if (e.EditAction == DataGridEditAction.Cancel)
+                return;
+
+            // 获取编辑后的值
+            if (e.EditingElement is TextBox textBox)
+            {
+                string newValue = textBox.Text?.Trim() ?? string.Empty;
+
+                // 如果编辑后的值为空，并且该项是新添加的行（规则为空）
+                if (string.IsNullOrWhiteSpace(newValue) && e.Row.Item is IgnoreRuleItem item)
+                {
+                    // 延迟执行以确保UI更新完成
+                    Dispatcher.InvokeAsync(() =>
+                    {
+                        // 检查规则是否仍然为空（用户可能没有输入任何内容）
+                        if (string.IsNullOrWhiteSpace(item.Rule))
+                        {
+                            // 从集合中移除空项
+                            IgnoreRules.Remove(item);
+                            isModified = true;
+                            StatusTextBlock.Text = "已移除空项";
+                        }
+                        else
+                        {
+                            isModified = true;
+                            StatusTextBlock.Text = "已修改";
+                        }
+                    }, System.Windows.Threading.DispatcherPriority.Background);
+                    return;
+                }
+            }
+
             // 延迟执行以确保编辑值被更新
             Dispatcher.InvokeAsync(() =>
             {

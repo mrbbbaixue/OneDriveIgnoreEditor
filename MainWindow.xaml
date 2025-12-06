@@ -5,10 +5,11 @@
     xmlns:local="clr-namespace:OneDriveIgnoreEditor"
     xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern"
     Title="OneDriveIgnoreEditor"
-    Width="500"
+    Width="650"
     Height="600"
-    MinWidth="500"
+    MinWidth="650"
     MinHeight="600"
+    PreviewMouseDown="Window_PreviewMouseDown"
     ui:WindowHelper.SystemBackdropType="Mica"
     ui:WindowHelper.UseModernWindowStyle="True">
     <Window.Resources>
@@ -36,7 +37,7 @@
                 Grid.Row="1"
                 Margin="0,0,0,0"
                 AutoGenerateColumns="False"
-                CanUserAddRows="True"
+                CanUserAddRows="False"
                 CanUserDeleteRows="True"
                 CanUserReorderColumns="False"
                 CanUserResizeColumns="True"
@@ -50,7 +51,6 @@
                         Width="*"
                         Binding="{Binding Rule, UpdateSourceTrigger=PropertyChanged}"
                         Header="规则" />
-                    <!--
                     <DataGridTemplateColumn Width="70" Header="操作">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
@@ -62,7 +62,6 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    -->
                 </DataGrid.Columns>
             </DataGrid>
 
@@ -71,6 +70,11 @@
                 Margin="0,10,0,0"
                 HorizontalAlignment="Right"
                 Orientation="Horizontal">
+                <Button
+                    Width="80"
+                    Margin="5"
+                    Click="AddNewButton_Click"
+                    Content="新增" />
                 <Button
                     Width="80"
                     Margin="5"
