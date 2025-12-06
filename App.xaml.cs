@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Windows;
@@ -17,6 +18,9 @@ namespace OneDriveIgnoreEditor
         {
             base.OnStartup(e);
 
+            // 解析命令行参数设置语言偏好
+            ParseCommandLineArguments(e.Args);
+
             // 正常启动应用程序
             if (!IsRunAsAdmin())
             {
@@ -24,6 +28,31 @@ namespace OneDriveIgnoreEditor
                 Current.Shutdown();
                 return;
             }
+        }
+
+        /// <summary>
+        /// 解析命令行参数设置语言偏好
+        /// </summary>
+        private void ParseCommandLineArguments(string[] args)
+        {
+            // 默认使用自动检测
+            TranslationService.LanguagePreference preference = TranslationService.LanguagePreference.Auto;
+
+            // 遍历所有参数，最后一个语言参数生效
+            for (int i = 0; i < args.Length; i++)
+            {
+                string arg = args[i].ToLowerInvariant();
+                if (arg == "-en" || arg == "--english")
+                {
+                    preference = TranslationService.LanguagePreference.English;
+                }
+                else if (arg == "-cn" || arg == "--chinese" || arg == "-zh")
+                {
+                    preference = TranslationService.LanguagePreference.Chinese;
+                }
+            }
+
+            TranslationService.PreferredLanguage = preference;
         }
 
         private static bool IsRunAsAdmin()
@@ -38,17 +67,40 @@ namespace OneDriveIgnoreEditor
             var exe = Environment.ProcessPath;
             if (string.IsNullOrEmpty(exe))
             {
-                MessageBox.Show("无法确定当前可执行文件路径。", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(TranslationService.GetText("CannotDetermineExePath"), TranslationService.GetText("ErrorTitle"), MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
+            }
+
+            // 获取原始命令行参数（排除程序路径）
+            var allArgs = Environment.GetCommandLineArgs();
+            string arguments = string.Empty;
+            if (allArgs.Length > 1)
+            {
+                // 跳过第一个元素（程序路径），将剩余参数用空格连接
+                arguments = string.Join(" ", allArgs.Skip(1).Select(arg => QuoteArgument(arg)));
             }
 
             var startInfo = new ProcessStartInfo(exe)
             {
                 UseShellExecute = true,
-                Verb = "runas"
+                Verb = "runas",
+                Arguments = arguments
             };
             try { Process.Start(startInfo); }
-            catch { MessageBox.Show("需要管理员权限来运行此程序。"); }
+            catch { MessageBox.Show(TranslationService.GetText("AdminRightsRequired")); }
+        }
+
+        /// <summary>
+        /// 引用参数（如果包含空格则添加引号）
+        /// </summary>
+        private static string QuoteArgument(string arg)
+        {
+            // 如果参数包含空格且未用引号包围，则添加引号
+            if (arg.Contains(' ') && !(arg.StartsWith('"') && arg.EndsWith('"')))
+            {
+                return '"' + arg + '"';
+            }
+            return arg;
         }
 
         /// <summary>
@@ -103,14 +155,14 @@ namespace OneDriveIgnoreEditor
                 if (!launched)
                 {
                     if (lastException != null)
-                        MessageBox.Show($"启动OneDrive失败: {lastException.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show(TranslationService.GetFormattedText("OneDriveStartFailed", lastException.Message), TranslationService.GetText("ErrorTitle"), MessageBoxButton.OK, MessageBoxImage.Error);
                     else
-                        MessageBox.Show("无法找到OneDrive可执行文件", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show(TranslationService.GetText("OneDriveExeNotFound"), TranslationService.GetText("ErrorTitle"), MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"重启OneDrive时发生错误: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(TranslationService.GetFormattedText("RestartOneDriveError", ex.Message), TranslationService.GetText("ErrorTitle"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

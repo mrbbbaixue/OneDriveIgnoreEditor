@@ -27,11 +27,12 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <TextBlock
+                x:Name="MainTitleTextBlock"
                 Grid.Row="0"
                 Margin="0,0,0,10"
                 FontSize="20"
                 FontWeight="Bold"
-                Text="OneDrive文件忽略列表" />
+                />
             <DataGrid
                 x:Name="IgnoreDataGrid"
                 Grid.Row="1"
@@ -50,8 +51,8 @@
                     <DataGridTextColumn
                         Width="*"
                         Binding="{Binding Rule, UpdateSourceTrigger=PropertyChanged}"
-                        Header="规则" />
-                    <DataGridTemplateColumn Width="70" Header="操作">
+                        Header="" />
+                    <DataGridTemplateColumn Width="70" Header="">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Button
@@ -71,33 +72,38 @@
                 HorizontalAlignment="Right"
                 Orientation="Horizontal">
                 <Button
+                    x:Name="AddButton"
                     Width="80"
                     Margin="5"
                     Click="AddNewButton_Click"
-                    Content="新增" />
+                    Content="" />
                 <Button
+                    x:Name="SaveButton"
                     Width="80"
                     Margin="5"
                     Click="SaveButton_Click"
-                    Content="保存" />
+                    Content="" />
                 <Button
+                    x:Name="RefreshButton"
                     Width="80"
                     Margin="5"
                     Click="RefreshButton_Click"
-                    Content="刷新" />
+                    Content="" />
                 <Button
+                    x:Name="ImportButton"
                     Margin="5"
                     Click="ImportButton_Click"
-                    Content="从文件导入" />
+                    Content="" />
                 <Button
+                    x:Name="RestartOneDriveButton"
                     Margin="5"
                     Click="RestartOneDriveButton_Click"
-                    Content="重启OneDrive" />
+                    Content="" />
             </StackPanel>
         </Grid>
         <StatusBar Grid.Row="1">
             <StatusBarItem Margin="5">
-                <TextBlock x:Name="StatusTextBlock" Text="准备就绪" />
+                <TextBlock x:Name="StatusTextBlock" />
             </StatusBarItem>
         </StatusBar>
     </Grid>
